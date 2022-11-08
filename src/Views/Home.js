@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import { ethers } from 'ethers'
 import getMrastaPrice from '../Hook/getMrastaPrice'
 import getContract from '../Hook/getContracts'
 import MasterChefABI from '../ABIs/MasterChefABI.json'
@@ -8,23 +7,12 @@ import SinglePoolABI from '../ABIs/SinglePoolABI.json'
 import LPABI from '../ABIs/LPABI.json'
 import TokenABI from '../ABIs/TokenABI.json'
 
-const getConnectedContract = (CONTRACT_ADDRESS, abi) => {
-  const { ethereum } = window;
-  if (ethereum) {
-    const provider = new ethers.providers.Web3Provider(ethereum)
-    const signer = provider.getSigner()
-    const connectedContract = new ethers.Contract(CONTRACT_ADDRESS, abi, signer)
-
-    return connectedContract
-  }
-}
-
 export default function Home() {
   const [mcPoolLength, setMCPoolLength] = useState(0);
   const [mcActivePoolLength, setMCActivePoolLength] = useState(0);
   const [mcActivePoolDetail, setMCActivePoolDetail] = useState([]);
   const MasterChefAddress = "0xec89Be665c851FfBAe2a8Ded03080F3E64116539";
-  const MasterChefContract = getConnectedContract(MasterChefAddress, MasterChefABI);
+  const MasterChefContract = getContract(MasterChefAddress, MasterChefABI);
 
   const getPoolLength = async () => {
     const poolLength = await MasterChefContract.poolLength();
@@ -58,10 +46,10 @@ export default function Home() {
     for (let i = 0; i < mcActivePools.length; i++) {
       let activePoolContract;
       try {
-        activePoolContract = getConnectedContract(mcActivePools[i].lpToken, LPABI)
+        activePoolContract = getContract(mcActivePools[i].lpToken, LPABI)
         // token0
         const token0 = await activePoolContract.token0()
-        const token0Contract = getConnectedContract(token0, TokenABI)
+        const token0Contract = getContract(token0, TokenABI)
         const token0_symbol = await token0Contract.symbol()
         let token0_price;
         if (token0_symbol === 'WBNB') {
@@ -78,7 +66,7 @@ export default function Home() {
         const token0_balance = parseInt(token0_balance_decimal._hex) / (Math.pow(10, token0_decimal))
         // token1
         const token1 = await activePoolContract.token1()
-        const token1Contract = getConnectedContract(token1, TokenABI)
+        const token1Contract = getContract(token1, TokenABI)
         const token1_symbol = await token1Contract.symbol()
         let token1_price;
         if (token1_symbol === 'WBNB') {
@@ -115,7 +103,7 @@ export default function Home() {
           totalStacked: total_staked
         })
       } catch (error) {
-        activePoolContract = getConnectedContract(mcActivePools[i].lpToken, SinglePoolABI)
+        activePoolContract = getContract(mcActivePools[i].lpToken, SinglePoolABI)
         const tokenAddress = mcActivePools[i].lpToken
         const symbol = await activePoolContract.symbol()
         if (symbol !== 'RX') {
@@ -167,35 +155,35 @@ export default function Home() {
 
   return (
     <div>
-      <div style={{ fontSize: '30px', fontWeight: 'bold' }}>Total Pools: {mcPoolLength}</div>
-      <div style={{ fontSize: '30px', fontWeight: 'bold' }}>Pools with Multiplier: {mcActivePoolLength}</div>
-      <div style={{ fontSize: '30px', fontWeight: 'bold' }}>Active Pools: {mcActivePoolDetail.length}</div>
-      <div style={{ fontSize: '30px', fontWeight: 'bold' }}>TVL: ${TotalValueLocked}</div>
-      <div style={{ fontSize: '30px', fontWeight: 'bold' }}>Details:</div>
+      <div className='text-[30px] font-bold'>Total Pools: {mcPoolLength}</div>
+      <div className='text-[30px] font-bold'>Pools with Multiplier: {mcActivePoolLength}</div>
+      <div className='text-[30px] font-bold'>Active Pools: {mcActivePoolDetail.length}</div>
+      <div className='text-[30px] font-bold'>TVL: ${TotalValueLocked}</div>
+      <div className='text-[30px] font-bold'>Details:</div>
       {mcActivePoolDetail.map((mcActivePool, index) => {
         if (mcActivePool.type === 'Single') {
           return (
             <div key={index}>
-              <div style={{ fontSize: '20px' }}>PoolName: {mcActivePool.symbol}</div>
-              <div style={{ fontSize: '20px' }}>Token Price: ${mcActivePool.lpPrice}</div>
-              <div style={{ fontSize: '20px' }}>Token Address: {mcActivePool.lpAddress}</div>
-              <div style={{ fontSize: '20px' }}>Total Staked: {mcActivePool.totalStacked}</div>
-              <div style={{ fontSize: '20px' }}>TVL: ${mcActivePool.TVL}</div>
+              <div className='text-xl'>PoolName: {mcActivePool.symbol}</div>
+              <div className='text-xl'>Token Price: ${mcActivePool.lpPrice}</div>
+              <div className='text-xl'>Token Address: {mcActivePool.lpAddress}</div>
+              <div className='text-xl'>Total Staked: {mcActivePool.totalStacked}</div>
+              <div className='text-xl'>TVL: ${mcActivePool.TVL}</div>
               <div>--------------------------------------------------------------------------------</div>
             </div>
           )
         } else {
           return (
             <div key={index}>
-              <div style={{ fontSize: '20px' }}>LP Name: {mcActivePool.symbol}</div>
-              <div style={{ fontSize: '20px' }}>LP Address: {mcActivePool.lpAddress}</div>
-              <div style={{ fontSize: '20px' }}>Token0: {mcActivePool.token0}</div>
-              <div style={{ fontSize: '20px' }}>Token1: {mcActivePool.token1}</div>
-              <div style={{ fontSize: '20px' }}>Token0 price: ${mcActivePool.token0_price}</div>
-              <div style={{ fontSize: '20px' }}>Token1 price: ${mcActivePool.token1_price}</div>
-              <div style={{ fontSize: '20px' }}>LP price: ${mcActivePool.lpPrice}</div>
-              <div style={{ fontSize: '20px' }}>Total Staked: {mcActivePool.totalStacked}</div>
-              <div style={{ fontSize: '20px' }}>TVL: ${mcActivePool.TVL}</div>
+              <div className='text-xl'>LP Name: {mcActivePool.symbol}</div>
+              <div className='text-xl'>LP Address: {mcActivePool.lpAddress}</div>
+              <div className='text-xl'>Token0: {mcActivePool.token0}</div>
+              <div className='text-xl'>Token1: {mcActivePool.token1}</div>
+              <div className='text-xl'>Token0 price: ${mcActivePool.token0_price}</div>
+              <div className='text-xl'>Token1 price: ${mcActivePool.token1_price}</div>
+              <div className='text-xl'>LP price: ${mcActivePool.lpPrice}</div>
+              <div className='text-xl'>Total Staked: {mcActivePool.totalStacked}</div>
+              <div className='text-xl'>TVL: ${mcActivePool.TVL}</div>
               <div>--------------------------------------------------------------------------------</div>
             </div>
           )
