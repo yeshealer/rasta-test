@@ -103,6 +103,7 @@ export default function Home() {
           totalStacked: total_staked
         })
       } catch (error) {
+        console.error(error)
         activePoolContract = getContract(mcActivePools[i].lpToken, SinglePoolABI)
         const tokenAddress = mcActivePools[i].lpToken
         const symbol = await activePoolContract.symbol()
