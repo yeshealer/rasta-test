@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import getMrastaPrice from '../Hook/getMrastaPrice'
-import getContract from '../Hook/getContracts'
 import getContractWeb3 from '../Hook/getContract'
 import MasterChefABI from '../ABIs/MasterChefABI.json'
 import SinglePoolABI from '../ABIs/SinglePoolABI.json'
@@ -13,7 +12,6 @@ const Home = () => {
   const [mcActivePoolLength, setMCActivePoolLength] = useState(0);
   const [mcActivePoolDetail, setMCActivePoolDetail] = useState([]);
   const MasterChefAddress = "0xec89Be665c851FfBAe2a8Ded03080F3E64116539";
-  // const MasterChefContract1 = getContract(MasterChefAddress, MasterChefABI);
   const MasterChefContract = getContractWeb3(MasterChefAddress, MasterChefABI);
 
   const getPoolLength = async () => {
@@ -48,11 +46,9 @@ const Home = () => {
     for (let i = 0; i < mcActivePools.length; i++) {
       let activePoolContract;
       try {
-        // activePoolContract = getContract(mcActivePools[i].lpToken, LPABI)
         activePoolContract = getContractWeb3(mcActivePools[i].lpToken, LPABI)
         // token0
         const token0 = await activePoolContract.methods.token0().call()
-        // const token0Contract = getContract(token0, TokenABI)
         const token0Contract = getContractWeb3(token0, TokenABI)
         const token0_symbol = await token0Contract.methods.symbol().call()
         let token0_price;
@@ -71,7 +67,6 @@ const Home = () => {
         // token1
         const token1 = await activePoolContract.methods.token1().call()
         const token1Contract = getContractWeb3(token1, TokenABI)
-        // const token1Contract = getContract(token1, TokenABI)
         const token1_symbol = await token1Contract.methods.symbol().call()
         let token1_price;
         if (token1_symbol === 'WBNB') {
@@ -111,7 +106,6 @@ const Home = () => {
       } catch (error) {
         console.error(error)
         activePoolContract = getContractWeb3(mcActivePools[i].lpToken, SinglePoolABI)
-        // activePoolContract = getContract(mcActivePools[i].lpToken, SinglePoolABI)
         const tokenAddress = mcActivePools[i].lpToken
         const symbol = await activePoolContract.methods.symbol().call()
         if (symbol !== 'RX') {
