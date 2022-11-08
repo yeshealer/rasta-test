@@ -2,28 +2,30 @@ import React, { useEffect, useState } from 'react'
 import axios from 'axios'
 import getMrastaPrice from '../Hook/getMrastaPrice'
 import getContract from '../Hook/getContracts'
+import getContractWeb3 from '../Hook/getContract'
 import MasterChefABI from '../ABIs/MasterChefABI.json'
 import SinglePoolABI from '../ABIs/SinglePoolABI.json'
 import LPABI from '../ABIs/LPABI.json'
 import TokenABI from '../ABIs/TokenABI.json'
 
-export default function Home() {
+const Home = () => {
   const [mcPoolLength, setMCPoolLength] = useState(0);
   const [mcActivePoolLength, setMCActivePoolLength] = useState(0);
   const [mcActivePoolDetail, setMCActivePoolDetail] = useState([]);
   const MasterChefAddress = "0xec89Be665c851FfBAe2a8Ded03080F3E64116539";
-  const MasterChefContract = getContract(MasterChefAddress, MasterChefABI);
+  // const MasterChefContract1 = getContract(MasterChefAddress, MasterChefABI);
+  const MasterChefContract = getContractWeb3(MasterChefAddress, MasterChefABI);
 
   const getPoolLength = async () => {
-    const poolLength = await MasterChefContract.poolLength();
-    return poolLength.toNumber()
+    const poolLength = await MasterChefContract.methods.poolLength().call();
+    return poolLength;
   }
 
   const getTotalPools = async () => {
     let mcTotalPools = []
     const mcPoolLength = await getPoolLength()
     for (let i = 0; i < mcPoolLength; i++) {
-      const rastaPool = await MasterChefContract.poolInfo(i)
+      const rastaPool = await MasterChefContract.methods.poolInfo(i).call()
       mcTotalPools.push(rastaPool)
     }
     return mcTotalPools
@@ -33,6 +35,7 @@ export default function Home() {
     let mcActivePools = []
     const mcTotalPools = await getTotalPools()
     for (let i = 0; i < mcTotalPools.length; i++) {
+      console.log(mcTotalPools[i])
       if (mcTotalPools[i].allocPoint.toNumber() > 0) {
         mcActivePools.push(mcTotalPools[i])
       }
@@ -46,11 +49,13 @@ export default function Home() {
     for (let i = 0; i < mcActivePools.length; i++) {
       let activePoolContract;
       try {
-        activePoolContract = getContract(mcActivePools[i].lpToken, LPABI)
+        // activePoolContract = getContract(mcActivePools[i].lpToken, LPABI)
+        activePoolContract = getContractWeb3(mcActivePools[i].lpToken, LPABI)
         // token0
-        const token0 = await activePoolContract.token0()
-        const token0Contract = getContract(token0, TokenABI)
-        const token0_symbol = await token0Contract.symbol()
+        const token0 = await activePoolContract.methods.token0().call()
+        // const token0Contract = getContract(token0, TokenABI)
+        const token0Contract = getContractWeb3(token0, TokenABI)
+        const token0_symbol = await token0Contract.methods.symbol().call()
         let token0_price;
         if (token0_symbol === 'WBNB') {
           const token0_detail = await axios.get(`https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd`)
@@ -65,9 +70,10 @@ export default function Home() {
         const token0_balance_decimal = await token0Contract.balanceOf(mcActivePools[i].lpToken)
         const token0_balance = parseInt(token0_balance_decimal._hex) / (Math.pow(10, token0_decimal))
         // token1
-        const token1 = await activePoolContract.token1()
-        const token1Contract = getContract(token1, TokenABI)
-        const token1_symbol = await token1Contract.symbol()
+        const token1 = await activePoolContract.methods.token1().call()
+        const token1Contract = getContractWeb3(token1, TokenABI)
+        // const token1Contract = getContract(token1, TokenABI)
+        const token1_symbol = await token1Contract.methods.symbol().call()
         let token1_price;
         if (token1_symbol === 'WBNB') {
           const token1_detail = await axios.get(`https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd`)
@@ -82,10 +88,10 @@ export default function Home() {
         const token1_balance_decimal = await token1Contract.balanceOf(mcActivePools[i].lpToken)
         const token1_balance = parseInt(token1_balance_decimal._hex) / (Math.pow(10, token1_decimal))
         // symbol
-        const symbol = await activePoolContract.symbol()
+        const symbol = await activePoolContract.symbol().call()
         // config
-        const total_staked_decimal = await activePoolContract.balanceOf(MasterChefAddress)
-        const total_supply_decimal = await activePoolContract.totalSupply()
+        const total_staked_decimal = await activePoolContract.balanceOf(MasterChefAddress).call()
+        const total_supply_decimal = await activePoolContract.totalSupply().call()
         const total_staked = parseInt(total_staked_decimal._hex) / Math.pow(10, 18)
         const total_supply = parseInt(total_supply_decimal._hex) / Math.pow(10, 18)
         const TVL = token0_price * token0_balance + token1_price * token1_balance
@@ -104,9 +110,10 @@ export default function Home() {
         })
       } catch (error) {
         console.error(error)
-        activePoolContract = getContract(mcActivePools[i].lpToken, SinglePoolABI)
+        activePoolContract = getContractWeb3(mcActivePools[i].lpToken, SinglePoolABI)
+        // activePoolContract = getContract(mcActivePools[i].lpToken, SinglePoolABI)
         const tokenAddress = mcActivePools[i].lpToken
-        const symbol = await activePoolContract.symbol()
+        const symbol = await activePoolContract.symbol().call()
         if (symbol !== 'RX') {
           let token_price;
           if (symbol === 'WBNB') {
@@ -118,8 +125,8 @@ export default function Home() {
           } else {
             token_price = await getMrastaPrice();
           }
-          const decimal = await activePoolContract.decimals()
-          const balance_decimal = await activePoolContract.balanceOf(MasterChefAddress)
+          const decimal = await activePoolContract.decimals().call()
+          const balance_decimal = await activePoolContract.balanceOf(MasterChefAddress).call()
           const balance = parseInt(balance_decimal._hex) / (Math.pow(10, decimal))
 
           const TVL = token_price * balance
@@ -193,3 +200,5 @@ export default function Home() {
     </div>
   )
 }
+
+export default Home
