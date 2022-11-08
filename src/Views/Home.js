@@ -33,10 +33,9 @@ const Home = () => {
 
   const getActivePools = async () => {
     let mcActivePools = []
-    const mcTotalPools = await getTotalPools()
+    const mcTotalPools = await getTotalPools();
     for (let i = 0; i < mcTotalPools.length; i++) {
-      console.log(mcTotalPools[i])
-      if (mcTotalPools[i].allocPoint.toNumber() > 0) {
+      if (mcTotalPools[i].allocPoint > 0) {
         mcActivePools.push(mcTotalPools[i])
       }
     }
@@ -66,9 +65,9 @@ const Home = () => {
         } else {
           token0_price = await getMrastaPrice();
         }
-        const token0_decimal = await token0Contract.decimals()
-        const token0_balance_decimal = await token0Contract.balanceOf(mcActivePools[i].lpToken)
-        const token0_balance = parseInt(token0_balance_decimal._hex) / (Math.pow(10, token0_decimal))
+        const token0_decimal = await token0Contract.methods.decimals().call()
+        const token0_balance_decimal = await token0Contract.methods.balanceOf(mcActivePools[i].lpToken).call()
+        const token0_balance = token0_balance_decimal / (Math.pow(10, token0_decimal))
         // token1
         const token1 = await activePoolContract.methods.token1().call()
         const token1Contract = getContractWeb3(token1, TokenABI)
@@ -84,16 +83,16 @@ const Home = () => {
         } else {
           token1_price = await getMrastaPrice();
         }
-        const token1_decimal = await token1Contract.decimals()
-        const token1_balance_decimal = await token1Contract.balanceOf(mcActivePools[i].lpToken)
-        const token1_balance = parseInt(token1_balance_decimal._hex) / (Math.pow(10, token1_decimal))
+        const token1_decimal = await token1Contract.methods.decimals().call()
+        const token1_balance_decimal = await token1Contract.methods.balanceOf(mcActivePools[i].lpToken).call()
+        const token1_balance = token1_balance_decimal / (Math.pow(10, token1_decimal))
         // symbol
-        const symbol = await activePoolContract.symbol().call()
+        const symbol = await activePoolContract.methods.symbol().call()
         // config
-        const total_staked_decimal = await activePoolContract.balanceOf(MasterChefAddress).call()
-        const total_supply_decimal = await activePoolContract.totalSupply().call()
-        const total_staked = parseInt(total_staked_decimal._hex) / Math.pow(10, 18)
-        const total_supply = parseInt(total_supply_decimal._hex) / Math.pow(10, 18)
+        const total_staked_decimal = await activePoolContract.methods.balanceOf(MasterChefAddress).call()
+        const total_supply_decimal = await activePoolContract.methods.totalSupply().call()
+        const total_staked = total_staked_decimal / Math.pow(10, 18)
+        const total_supply = total_supply_decimal / Math.pow(10, 18)
         const TVL = token0_price * token0_balance + token1_price * token1_balance
         const lpPrice = TVL / total_supply
 
@@ -108,12 +107,13 @@ const Home = () => {
           lpPrice: lpPrice,
           totalStacked: total_staked
         })
+        console.log(activePoolsDetail)
       } catch (error) {
         console.error(error)
         activePoolContract = getContractWeb3(mcActivePools[i].lpToken, SinglePoolABI)
         // activePoolContract = getContract(mcActivePools[i].lpToken, SinglePoolABI)
         const tokenAddress = mcActivePools[i].lpToken
-        const symbol = await activePoolContract.symbol().call()
+        const symbol = await activePoolContract.methods.symbol().call()
         if (symbol !== 'RX') {
           let token_price;
           if (symbol === 'WBNB') {
@@ -125,9 +125,9 @@ const Home = () => {
           } else {
             token_price = await getMrastaPrice();
           }
-          const decimal = await activePoolContract.decimals().call()
-          const balance_decimal = await activePoolContract.balanceOf(MasterChefAddress).call()
-          const balance = parseInt(balance_decimal._hex) / (Math.pow(10, decimal))
+          const decimal = await activePoolContract.methods.decimals().call()
+          const balance_decimal = await activePoolContract.methods.balanceOf(MasterChefAddress).call()
+          const balance = balance_decimal / (Math.pow(10, decimal))
 
           const TVL = token_price * balance
 
