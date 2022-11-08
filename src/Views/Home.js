@@ -45,7 +45,7 @@ export default function Home() {
     const mcActivePools = await getActivePools();
     for (let i = 0; i < mcActivePools.length; i++) {
       let activePoolContract;
-      try {
+      // try {
         activePoolContract = getContract(mcActivePools[i].lpToken, LPABI)
         // token0
         const token0 = await activePoolContract.token0()
@@ -102,38 +102,38 @@ export default function Home() {
           lpPrice: lpPrice,
           totalStacked: total_staked
         })
-      } catch (error) {
-        console.error(error)
-        activePoolContract = getContract(mcActivePools[i].lpToken, SinglePoolABI)
-        const tokenAddress = mcActivePools[i].lpToken
-        const symbol = await activePoolContract.symbol()
-        if (symbol !== 'RX') {
-          let token_price;
-          if (symbol === 'WBNB') {
-            const detail = await axios.get(`https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd`)
-            token_price = detail.data.binancecoin.usd;
-          } else if (symbol !== 'MRASTA') {
-            const detail = await axios.get(`https://api.pancakeswap.info/api/v2/tokens/${tokenAddress}`)
-            token_price = detail.data.data.price;
-          } else {
-            token_price = await getMrastaPrice();
-          }
-          const decimal = await activePoolContract.decimals()
-          const balance_decimal = await activePoolContract.balanceOf(MasterChefAddress)
-          const balance = parseInt(balance_decimal._hex) / (Math.pow(10, decimal))
+      // } catch (error) {
+      //   console.error(error)
+      //   activePoolContract = getContract(mcActivePools[i].lpToken, SinglePoolABI)
+      //   const tokenAddress = mcActivePools[i].lpToken
+      //   const symbol = await activePoolContract.symbol()
+      //   if (symbol !== 'RX') {
+      //     let token_price;
+      //     if (symbol === 'WBNB') {
+      //       const detail = await axios.get(`https://api.coingecko.com/api/v3/simple/price?ids=binancecoin&vs_currencies=usd`)
+      //       token_price = detail.data.binancecoin.usd;
+      //     } else if (symbol !== 'MRASTA') {
+      //       const detail = await axios.get(`https://api.pancakeswap.info/api/v2/tokens/${tokenAddress}`)
+      //       token_price = detail.data.data.price;
+      //     } else {
+      //       token_price = await getMrastaPrice();
+      //     }
+      //     const decimal = await activePoolContract.decimals()
+      //     const balance_decimal = await activePoolContract.balanceOf(MasterChefAddress)
+      //     const balance = parseInt(balance_decimal._hex) / (Math.pow(10, decimal))
 
-          const TVL = token_price * balance
+      //     const TVL = token_price * balance
 
-          activePoolsDetail.push({
-            symbol: symbol,
-            lpAddress: mcActivePools[i].lpToken,
-            lpPrice: token_price,
-            totalStacked: balance,
-            TVL: TVL,
-            type: 'Single'
-          })
-        }
-      }
+      //     activePoolsDetail.push({
+      //       symbol: symbol,
+      //       lpAddress: mcActivePools[i].lpToken,
+      //       lpPrice: token_price,
+      //       totalStacked: balance,
+      //       TVL: TVL,
+      //       type: 'Single'
+      //     })
+      //   }
+      // }
     }
     return activePoolsDetail;
   }
