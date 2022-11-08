@@ -1,17 +1,30 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import getContract from '../Hook/useContracts'
+import { ethers } from 'ethers'
+import getMrastaPrice from '../Hook/getMrastaPrice'
+import getContract from '../Hook/getContracts'
 import MasterChefABI from '../ABIs/MasterChefABI.json'
 import SinglePoolABI from '../ABIs/SinglePoolABI.json'
 import LPABI from '../ABIs/LPABI.json'
 import TokenABI from '../ABIs/TokenABI.json'
 
+const getConnectedContract = (CONTRACT_ADDRESS, abi) => {
+  const { ethereum } = window;
+  if (ethereum) {
+    const provider = new ethers.providers.Web3Provider(ethereum)
+    const signer = provider.getSigner()
+    const connectedContract = new ethers.Contract(CONTRACT_ADDRESS, abi, signer)
+
+    return connectedContract
+  }
+}
+
 export default function Home() {
   const [mcPoolLength, setMCPoolLength] = useState(0);
   const [mcActivePoolLength, setMCActivePoolLength] = useState(0);
   const [mcActivePoolDetail, setMCActivePoolDetail] = useState([]);
-  const MasterChefAddress = "0xec89Be665c851FfBAe2a8Ded03080F3E64116539"
-  const MasterChefContract = getContract(MasterChefAddress, MasterChefABI)
+  const MasterChefAddress = "0xec89Be665c851FfBAe2a8Ded03080F3E64116539";
+  const MasterChefContract = getConnectedContract(MasterChefAddress, MasterChefABI);
 
   const getPoolLength = async () => {
     const poolLength = await MasterChefContract.poolLength();
@@ -45,10 +58,10 @@ export default function Home() {
     for (let i = 0; i < mcActivePools.length; i++) {
       let activePoolContract;
       try {
-        activePoolContract = getContract(mcActivePools[i].lpToken, LPABI)
+        activePoolContract = getConnectedContract(mcActivePools[i].lpToken, LPABI)
         // token0
         const token0 = await activePoolContract.token0()
-        const token0Contract = getContract(token0, TokenABI)
+        const token0Contract = getConnectedContract(token0, TokenABI)
         const token0_symbol = await token0Contract.symbol()
         let token0_price;
         if (token0_symbol === 'WBNB') {
@@ -58,14 +71,14 @@ export default function Home() {
           const token0_detail = await axios.get(`https://api.pancakeswap.info/api/v2/tokens/${token0}`)
           token0_price = token0_detail.data.data.price;
         } else {
-          token0_price = 1.865
+          token0_price = await getMrastaPrice();
         }
         const token0_decimal = await token0Contract.decimals()
         const token0_balance_decimal = await token0Contract.balanceOf(mcActivePools[i].lpToken)
         const token0_balance = parseInt(token0_balance_decimal._hex) / (Math.pow(10, token0_decimal))
         // token1
         const token1 = await activePoolContract.token1()
-        const token1Contract = getContract(token1, TokenABI)
+        const token1Contract = getConnectedContract(token1, TokenABI)
         const token1_symbol = await token1Contract.symbol()
         let token1_price;
         if (token1_symbol === 'WBNB') {
@@ -75,7 +88,7 @@ export default function Home() {
           const token1_detail = await axios.get(`https://api.pancakeswap.info/api/v2/tokens/${token1}`)
           token1_price = token1_detail.data.data.price;
         } else {
-          token1_price = 1.865
+          token1_price = await getMrastaPrice();
         }
         const token1_decimal = await token1Contract.decimals()
         const token1_balance_decimal = await token1Contract.balanceOf(mcActivePools[i].lpToken)
@@ -102,7 +115,7 @@ export default function Home() {
           totalStacked: total_staked
         })
       } catch (error) {
-        activePoolContract = getContract(mcActivePools[i].lpToken, SinglePoolABI)
+        activePoolContract = getConnectedContract(mcActivePools[i].lpToken, SinglePoolABI)
         const tokenAddress = mcActivePools[i].lpToken
         const symbol = await activePoolContract.symbol()
         if (symbol !== 'RX') {
@@ -114,7 +127,7 @@ export default function Home() {
             const detail = await axios.get(`https://api.pancakeswap.info/api/v2/tokens/${tokenAddress}`)
             token_price = detail.data.data.price;
           } else {
-            token_price = 1.865
+            token_price = await getMrastaPrice();
           }
           const decimal = await activePoolContract.decimals()
           const balance_decimal = await activePoolContract.balanceOf(MasterChefAddress)
@@ -143,7 +156,6 @@ export default function Home() {
       const activePools = await getActivePools();
       setMCActivePoolLength(activePools.length)
       const activePoolDetail = await getActivePoolsDetail();
-      console.log(activePoolDetail)
       setMCActivePoolDetail(activePoolDetail);
     })()
   }, [])
@@ -158,7 +170,7 @@ export default function Home() {
       <div style={{ fontSize: '30px', fontWeight: 'bold' }}>Total Pools: {mcPoolLength}</div>
       <div style={{ fontSize: '30px', fontWeight: 'bold' }}>Pools with Multiplier: {mcActivePoolLength}</div>
       <div style={{ fontSize: '30px', fontWeight: 'bold' }}>Active Pools: {mcActivePoolDetail.length}</div>
-      <div style={{ fontSize: '30px', fontWeight: 'bold' }}>TVL: {TotalValueLocked}</div>
+      <div style={{ fontSize: '30px', fontWeight: 'bold' }}>TVL: ${TotalValueLocked}</div>
       <div style={{ fontSize: '30px', fontWeight: 'bold' }}>Details:</div>
       {mcActivePoolDetail.map((mcActivePool, index) => {
         if (mcActivePool.type === 'Single') {
