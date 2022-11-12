@@ -1,18 +1,44 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import axios from 'axios'
 import getMrastaPrice from '../Hook/getMrastaPrice'
 import getContractWeb3 from '../Hook/getContract'
 import MasterChefABI from '../ABIs/MasterChefABI.json'
+import DividendNFTABI from '../ABIs/DividendNFTABI.json'
+import ZionBuilderNFTABI from '../ABIs/ZionBuilderNFTABI.json'
 import SinglePoolABI from '../ABIs/SinglePoolABI.json'
 import LPABI from '../ABIs/LPABI.json'
 import TokenABI from '../ABIs/TokenABI.json'
+import getRastaPrice from '../Hook/getRastaPrice'
+import getWBNBprice from '../Hook/getWBNBprice'
 
 const Home = () => {
+  const [rastaPrice, setRastaPrice] = useState(0)
+  const [dividendNFTTotalReward, setDividendNFTTotalReward] = useState(0);
+  const [zionBuilderNFTTotalReward, setZionBuilderNFTTotalReward] = useState(0);
   const [mcPoolLength, setMCPoolLength] = useState(0);
   const [mcActivePoolLength, setMCActivePoolLength] = useState(0);
   const [mcActivePoolDetail, setMCActivePoolDetail] = useState([]);
   const MasterChefAddress = "0xec89Be665c851FfBAe2a8Ded03080F3E64116539";
+  const DividendNFTAddress = "0xcc406fdA6ea668ca89C0F7a6c70658a875Af082C";
+  const ZionBuilderNFTAddress = "0xF5475159CeE27693ad975286Ab51848afA332E27";
   const MasterChefContract = getContractWeb3(MasterChefAddress, MasterChefABI);
+  const DividendNFTContract = getContractWeb3(DividendNFTAddress, DividendNFTABI);
+  const ZionBuilderNFTContract = getContractWeb3(ZionBuilderNFTAddress, ZionBuilderNFTABI)
+
+  const getDividendNFTTotalReward = async () => {
+    const defaultPrice_decimal = await DividendNFTContract.methods.defaultPrice().call();
+    const userCount = await DividendNFTContract.methods.totalSupply().call();
+    const defaultPrice = defaultPrice_decimal / Math.pow(10, 18);
+    return [defaultPrice, userCount]
+  }
+
+  const getZionBuilderNFTTotalReward = async () => {
+    const totalReward_decimal = await ZionBuilderNFTContract.methods.totalReward().call();
+    const rewardRate_decimal = await DividendNFTContract.methods.rewardRate().call();
+    const totalReward = totalReward_decimal / Math.pow(10, 18);
+    const rewardRate = rewardRate_decimal / Math.pow(10, 18)
+    return [totalReward, rewardRate]
+  }
 
   const getPoolLength = async () => {
     const poolLength = await MasterChefContract.methods.poolLength().call();
@@ -102,7 +128,6 @@ const Home = () => {
           lpPrice: lpPrice,
           totalStacked: total_staked
         })
-        console.log(activePoolsDetail)
       } catch (error) {
         console.error(error)
         activePoolContract = getContractWeb3(mcActivePools[i].lpToken, SinglePoolABI)
@@ -141,6 +166,13 @@ const Home = () => {
 
   useEffect(() => {
     (async () => {
+      const rasta_price = await getRastaPrice();
+      const bnb_price = await getWBNBprice();
+      setRastaPrice(rasta_price)
+      const NFTTotalReward = await getDividendNFTTotalReward();
+      setDividendNFTTotalReward(NFTTotalReward[0] * NFTTotalReward[1] * bnb_price);
+      const zionNFTTotalReward = await getZionBuilderNFTTotalReward();
+      setZionBuilderNFTTotalReward(zionNFTTotalReward[0] / zionNFTTotalReward[1] * rasta_price);
       const mcPoolLength = await getPoolLength();
       setMCPoolLength(mcPoolLength)
       const activePools = await getActivePools();
@@ -157,10 +189,12 @@ const Home = () => {
 
   return (
     <div>
+      <div className='text-[30px] font-bold'>DividendNFT Pool TVL: ${dividendNFTTotalReward}</div>
+      <div className='text-[30px] font-bold'>ZionBuildersNFT Pool TVL: ${zionBuilderNFTTotalReward}</div>
       <div className='text-[30px] font-bold'>Total Pools: {mcPoolLength}</div>
       <div className='text-[30px] font-bold'>Pools with Multiplier: {mcActivePoolLength}</div>
       <div className='text-[30px] font-bold'>Active Pools: {mcActivePoolDetail.length}</div>
-      <div className='text-[30px] font-bold'>TVL: ${TotalValueLocked}</div>
+      <div className='text-[30px] font-bold'>TVL: ${TotalValueLocked + dividendNFTTotalReward + zionBuilderNFTTotalReward}</div>
       <div className='text-[30px] font-bold'>Details:</div>
       {mcActivePoolDetail.map((mcActivePool, index) => {
         if (mcActivePool.type === 'Single') {
