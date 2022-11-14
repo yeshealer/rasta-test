@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import axios from 'axios'
+import CountUp from 'react-countup';
 import getMrastaPrice from '../Hook/getMrastaPrice'
 import getContractWeb3 from '../Hook/getContract'
 import MasterChefABI from '../ABIs/MasterChefABI.json'
@@ -12,11 +13,12 @@ import getRastaPrice from '../Hook/getRastaPrice'
 import getWBNBprice from '../Hook/getWBNBprice'
 
 const Home = () => {
+  const currentRef = useRef(null);
   const [rastaPrice, setRastaPrice] = useState(0)
-  const [dividendNFTTotalReward, setDividendNFTTotalReward] = useState(0);
-  const [zionBuilderNFTTotalReward, setZionBuilderNFTTotalReward] = useState(0);
-  const [mcPoolLength, setMCPoolLength] = useState(0);
-  const [mcActivePoolLength, setMCActivePoolLength] = useState(0);
+  const [dividendNFTTotalReward, setDividendNFTTotalReward] = useState();
+  const [zionBuilderNFTTotalReward, setZionBuilderNFTTotalReward] = useState();
+  const [mcPoolLength, setMCPoolLength] = useState();
+  const [mcActivePoolLength, setMCActivePoolLength] = useState();
   const [mcActivePoolDetail, setMCActivePoolDetail] = useState([]);
   const MasterChefAddress = "0xec89Be665c851FfBAe2a8Ded03080F3E64116539";
   const DividendNFTAddress = "0xcc406fdA6ea668ca89C0F7a6c70658a875Af082C";
@@ -169,7 +171,6 @@ const Home = () => {
       const rasta_price = await getRastaPrice();
       const bnb_price = await getWBNBprice();
       setRastaPrice(rasta_price)
-      console.log(rasta_price)
       const NFTTotalReward = await getDividendNFTTotalReward();
       setDividendNFTTotalReward(NFTTotalReward[0] * NFTTotalReward[1] * bnb_price);
       const zionNFTTotalReward = await getZionBuilderNFTTotalReward();
@@ -188,42 +189,66 @@ const Home = () => {
     TotalValueLocked += mcActivePoolDetail[i].TVL
   }
 
+  const TVL = TotalValueLocked + dividendNFTTotalReward + zionBuilderNFTTotalReward
+
   return (
-    <div className='w-screen h-screen flex items-center justify-center bg-gradient-to-b from-transparent via-cyan-200 to-white'>
-      <div className="relative w-full max-w-xl">
-        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob " />
-        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
-        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
-        <div className="m-8 relative space-y-4 opacity-0">
-          <div className="p-5 bg-white rounded-lg flex items-center justify-between space-x-8">
-            <div className="flex-1">
-              <div className="h-4 w-48 bg-gray-300 rounded" />
-            </div>
-            <div>
-              <div className="w-24 h-6 rounded-lg bg-purple-300" />
+    <div className='w-screen flex items-center justify-center h-screen bg-gradient-to-b from-transparent via-cyan-200 to-white'>
+      <div className="relative w-full max-w-4xl flex items-center justify-center">
+        <div className="absolute top-0 -left-4 w-80 h-80 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob" />
+        <div className="absolute top-4 -right-4 w-80 h-80 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
+        <div className="absolute top-10 right-40 w-80 h-80 bg-rose-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-6000" />
+        <div className="absolute -bottom-12 right-72 w-80 h-80 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-80 h-80 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
+        <div className='w-[700px] h-[500px] bg-[#00000030] rounded-2xl filter-blur-1 flex flex-col justify-between p-8'>
+          <div>
+            <div className='font-[Poppins] animate-text bg-gradient-to-r from-teal-500 via-purple-500 to-orange-500 bg-clip-text text-transparent text-5xl font-black'>Zion Labs TVL</div>
+            <div className='mt-6'>
+              <div className='filter-blur-1 w-full p-2 px-5 text-purple-500 font-[Poppins] text-xl flex justify-between'>
+                DividendNFT Pool TVL
+                {dividendNFTTotalReward ? <span className='font-bold tracking-wider'>${dividendNFTTotalReward}</span> : <div className='animate-pulse'><div className='w-24 h-full bg-[#00000040] rounded-md' /></div>}
+              </div>
+              <div className='filter-blur-1 w-full p-2 px-5 text-purple-500 font-[Poppins] text-xl flex justify-between mt-1'>
+                ZionBuildersNFT Pool TVL
+                {zionBuilderNFTTotalReward ? <span className='font-bold tracking-wider'>${zionBuilderNFTTotalReward}</span> : <div className='animate-pulse'><div className='w-24 h-full bg-[#00000040] rounded-md' /></div>}
+              </div>
+              <div className='filter-blur-1 w-full p-2 px-5 text-purple-500 font-[Poppins] text-xl mt-1'>
+                <div className='flex justify-between'>
+                  Total Pools
+                  {mcPoolLength ? <span className='font-bold tracking-wider'>{mcPoolLength}</span> : <div className='animate-pulse'><div className='w-24 h-full bg-[#00000040] rounded-md' /></div>}
+                </div>
+                <div className='flex justify-between mt-2'>
+                  Pools with Multiplier
+                  {mcActivePoolLength ? <span className='font-bold tracking-wider'>{mcActivePoolLength}</span> : <div className='animate-pulse'><div className='w-24 h-full bg-[#00000040] rounded-md' /></div>}
+                </div>
+                <div className='flex justify-between mt-2'>
+                  Active Pools
+                  {mcActivePoolDetail.length ? <span className='font-bold tracking-wider'>{mcActivePoolDetail.length}</span> : <div className='animate-pulse'><div className='w-24 h-full bg-[#00000040] rounded-md' /></div>}
+                </div>
+              </div>
             </div>
           </div>
-          <div className="p-5 bg-white rounded-lg flex items-center justify-between space-x-8">
-            <div className="flex-1">
-              <div className="h-4 w-56 bg-gray-300 rounded" />
-            </div>
-            <div>
-              <div className="w-20 h-6 rounded-lg bg-yellow-300" />
-            </div>
-          </div>
-          <div className="p-5 bg-white rounded-lg flex items-center justify-between space-x-8">
-            <div className="flex-1">
-              <div className="h-4 w-44 bg-gray-300 rounded" />
-            </div>
-            <div>
-              <div className="w-28 h-6 rounded-lg bg-pink-300" />
-            </div>
-          </div>
+          {TVL ?
+            <CountUp
+              start={0}
+              end={TVL.toFixed(2)}
+              duration={1.5}
+              separator=" "
+              decimals={2}
+              decimal="."
+              prefix="$"
+            >
+              {({ countUpRef }) => (
+                <div className='w-full flex justify-end'>
+                  <span ref={countUpRef} className='text-5xl font-[Poppins] text-orange-500 font-bold text-right' />
+                </div>
+              )}
+            </CountUp>
+            :
+            <div className='animate-pulse flex w-full justify-end'><div className='w-60 h-12 bg-[#00000040] rounded-md' /></div>
+          }
+          {/* <div className='text-right text-5xl font-[Poppins] text-orange-500 font-bold'>${TVL.toFixed(2)}</div> */}
         </div>
       </div>
-      {/* <div className='w-[600px] h-[400px] bg-[#00000030] rounded-2xl'>
-
-      </div> */}
       {/* <div className='text-[30px] font-bold'>DividendNFT Pool TVL: ${dividendNFTTotalReward}</div>
       <div className='text-[30px] font-bold'>ZionBuildersNFT Pool TVL: ${zionBuilderNFTTotalReward}</div>
       <div className='text-[30px] font-bold'>Total Pools: {mcPoolLength}</div>
