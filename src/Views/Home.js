@@ -246,7 +246,6 @@ const Home = () => {
             :
             <div className='animate-pulse flex w-full justify-end'><div className='w-60 h-12 bg-[#00000040] rounded-md' /></div>
           }
-          {/* <div className='text-right text-5xl font-[Poppins] text-orange-500 font-bold'>${TVL.toFixed(2)}</div> */}
         </div>
       </div>
       {/* <div className='text-[30px] font-bold'>DividendNFT Pool TVL: ${dividendNFTTotalReward}</div>
