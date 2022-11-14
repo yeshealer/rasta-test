@@ -169,6 +169,7 @@ const Home = () => {
       const rasta_price = await getRastaPrice();
       const bnb_price = await getWBNBprice();
       setRastaPrice(rasta_price)
+      console.log(rasta_price)
       const NFTTotalReward = await getDividendNFTTotalReward();
       setDividendNFTTotalReward(NFTTotalReward[0] * NFTTotalReward[1] * bnb_price);
       const zionNFTTotalReward = await getZionBuilderNFTTotalReward();
@@ -188,8 +189,42 @@ const Home = () => {
   }
 
   return (
-    <div>
-      <div className='text-[30px] font-bold'>DividendNFT Pool TVL: ${dividendNFTTotalReward}</div>
+    <div className='w-screen h-screen flex items-center justify-center bg-gradient-to-b from-transparent via-cyan-200 to-white'>
+      <div className="relative w-full max-w-xl">
+        <div className="absolute top-0 -left-4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob " />
+        <div className="absolute top-0 -right-4 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-2000" />
+        <div className="absolute -bottom-8 left-20 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-70 animate-blob animation-delay-4000" />
+        <div className="m-8 relative space-y-4 opacity-0">
+          <div className="p-5 bg-white rounded-lg flex items-center justify-between space-x-8">
+            <div className="flex-1">
+              <div className="h-4 w-48 bg-gray-300 rounded" />
+            </div>
+            <div>
+              <div className="w-24 h-6 rounded-lg bg-purple-300" />
+            </div>
+          </div>
+          <div className="p-5 bg-white rounded-lg flex items-center justify-between space-x-8">
+            <div className="flex-1">
+              <div className="h-4 w-56 bg-gray-300 rounded" />
+            </div>
+            <div>
+              <div className="w-20 h-6 rounded-lg bg-yellow-300" />
+            </div>
+          </div>
+          <div className="p-5 bg-white rounded-lg flex items-center justify-between space-x-8">
+            <div className="flex-1">
+              <div className="h-4 w-44 bg-gray-300 rounded" />
+            </div>
+            <div>
+              <div className="w-28 h-6 rounded-lg bg-pink-300" />
+            </div>
+          </div>
+        </div>
+      </div>
+      {/* <div className='w-[600px] h-[400px] bg-[#00000030] rounded-2xl'>
+
+      </div> */}
+      {/* <div className='text-[30px] font-bold'>DividendNFT Pool TVL: ${dividendNFTTotalReward}</div>
       <div className='text-[30px] font-bold'>ZionBuildersNFT Pool TVL: ${zionBuilderNFTTotalReward}</div>
       <div className='text-[30px] font-bold'>Total Pools: {mcPoolLength}</div>
       <div className='text-[30px] font-bold'>Pools with Multiplier: {mcActivePoolLength}</div>
@@ -224,7 +259,7 @@ const Home = () => {
             </div>
           )
         }
-      })}
+      })} */}
     </div>
   )
 }
