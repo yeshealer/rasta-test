@@ -205,11 +205,11 @@ const Home = () => {
             <div className='mt-6'>
               <div className='filter-blur-1 w-full p-2 px-5 text-purple-500 font-[Poppins] text-xl flex justify-between'>
                 DividendNFT Pool TVL
-                {dividendNFTTotalReward ? <span className='font-bold tracking-wider'>${dividendNFTTotalReward}</span> : <div className='animate-pulse'><div className='w-24 h-full bg-[#00000040] rounded-md' /></div>}
+                {dividendNFTTotalReward ? <span className='font-bold tracking-wider'>${dividendNFTTotalReward.toFixed(2)}</span> : <div className='animate-pulse'><div className='w-24 h-full bg-[#00000040] rounded-md' /></div>}
               </div>
               <div className='filter-blur-1 w-full p-2 px-5 text-purple-500 font-[Poppins] text-xl flex justify-between mt-1'>
                 ZionBuildersNFT Pool TVL
-                {zionBuilderNFTTotalReward ? <span className='font-bold tracking-wider'>${zionBuilderNFTTotalReward}</span> : <div className='animate-pulse'><div className='w-24 h-full bg-[#00000040] rounded-md' /></div>}
+                {zionBuilderNFTTotalReward ? <span className='font-bold tracking-wider'>${zionBuilderNFTTotalReward.toFixed(2)}</span> : <div className='animate-pulse'><div className='w-24 h-full bg-[#00000040] rounded-md' /></div>}
               </div>
               <div className='filter-blur-1 w-full p-2 px-5 text-purple-500 font-[Poppins] text-xl mt-1'>
                 <div className='flex justify-between'>
